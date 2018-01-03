@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Net;
 using System.Text;
+using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using MoreLinq;
 using Newtonsoft.Json.Linq;
@@ -29,9 +30,9 @@ namespace SEApiComposeImages
         {
             var topids = GetIds(FileName);
             var topUsers = GetUsers(topids);
-            int cols = 16, rows = 8;
+            int cols = 22, rows = 6;
             var shuffledImages = Shuffle(topUsers.Select(u => u.Image).Take(cols * rows));
-            var result = ImageTools.CombineImages(shuffledImages, cols, rows, 128, 128, 5);
+            var result = ImageTools.CombineImages(shuffledImages, GetGridSettings(cols, rows));
             ImageTools.SaveImageAsPng(result, $@"combined-{cols}x{rows}.png");
         }
 
@@ -127,6 +128,21 @@ namespace SEApiComposeImages
                 }
             }
             return result;
+        }
+
+        ImageGridSettings GetGridSettings(int cols, int rows)
+        {
+            return new ImageGridSettings
+            {
+                Columns = cols,
+                Rows = rows,
+                CellPixelWidth = 128,
+                CellPixelHeight = 128,
+                Gap = 5,
+                CornerRadiusX = 10,
+                CornerRadiusY = 10,
+                BackgroundColor = Colors.Black
+            };
         }
     }
 }

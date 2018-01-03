@@ -60,6 +60,7 @@
       <SubType>Component</SubType>
     </Compile>
     <Compile Include="HSVColor.cs" />
+    <Compile Include="ImageGridSettings.cs" />
     <Compile Include="ImageTools.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
