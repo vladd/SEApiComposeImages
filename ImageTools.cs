@@ -68,7 +68,7 @@ namespace SEApiComposeImages
                         countDiffering++;
                 }
             var ratio = (double)countDiffering / width / height;
-            return ratio < 0.075;
+            return ratio < 0.025;
         }
 
 
