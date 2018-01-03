@@ -23,9 +23,11 @@ namespace SEApiComposeImages
         static void Main(string[] args) => new Program().Run();
 
         Random random = new Random();
+        const string FileName = "TopUserIds.txt";
+
         void Run()
         {
-            var topids = GetIds();
+            var topids = GetIds(FileName);
             var topUsers = GetUsers(topids);
             int cols = 16, rows = 8;
             var shuffledImages = Shuffle(topUsers.Select(u => u.Image).Take(cols * rows));
@@ -33,19 +35,9 @@ namespace SEApiComposeImages
             ImageTools.SaveImageAsPng(result, $@"combined-{cols}x{rows}.png");
         }
 
-        IEnumerable<int> GetIds()
+        IEnumerable<int> GetIds(string filename)
         {
-            var lines = File.ReadLines("TopUsersLast90Days.csv");
-            return lines.Skip(1).Select(ExtractId);
-        }
-
-        int ExtractId(string line)
-        {
-            var values = line.Split(',');
-            if (values.Length != 3)
-                throw new ArgumentException("Unknown format");
-            var idString = values[0].Trim('"');
-            return int.Parse(idString);
+            return File.ReadLines(filename).Distinct().Select(int.Parse);
         }
 
         IEnumerable<User> GetUsers(IEnumerable<int> ids)
