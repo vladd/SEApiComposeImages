@@ -1,9 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using System.Windows;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 
@@ -24,12 +21,15 @@ namespace SEApiComposeImages
             var drawingVisual = new DrawingVisual();
             using (DrawingContext drawingContext = drawingVisual.RenderOpen())
             {
+                drawingContext.DrawRectangle(
+                    new SolidColorBrush(Colors.Black), null,
+                    new Rect(0, 0, (pixelWidth + gap) * hq - gap, (pixelHeight + gap) * vq - gap));
                 int i = 0;
                 foreach (var image in images)
                 {
                     int x = i % hq, y = i / hq;
                     drawingContext.DrawImage(
-                        image, new System.Windows.Rect((pixelWidth + gap) * x, (pixelHeight + gap) * y, pixelWidth, pixelHeight));
+                        image, new Rect((pixelWidth + gap) * x, (pixelHeight + gap) * y, pixelWidth, pixelHeight));
                     i++;
                 }
             }
