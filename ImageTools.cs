@@ -1,9 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using System.Windows;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 
@@ -19,23 +16,36 @@ namespace SEApiComposeImages
                 encoder.Save(stream);
         }
 
-        static public BitmapFrame CombineImages(IEnumerable<BitmapFrame> images, int hq, int vq, int pixelWidth, int pixelHeight, int gap)
+        static public BitmapFrame CombineImages(IEnumerable<BitmapFrame> images, ImageGridSettings settings)
         {
+            var totalWidth = (settings.CellPixelWidth + settings.Gap) * settings.Columns - settings.Gap;
+            var totalHeight = (settings.CellPixelHeight + settings.Gap) * settings.Rows - settings.Gap;
+
             var drawingVisual = new DrawingVisual();
             using (DrawingContext drawingContext = drawingVisual.RenderOpen())
             {
+                if (settings.BackgroundColor != null)
+                    drawingContext.DrawRectangle(
+                        new SolidColorBrush(settings.BackgroundColor.Value), null,
+                        new Rect(0, 0, totalWidth, totalHeight));
                 int i = 0;
                 foreach (var image in images)
                 {
-                    int x = i % hq, y = i / hq;
-                    drawingContext.DrawImage(
-                        image, new System.Windows.Rect((pixelWidth + gap) * x, (pixelHeight + gap) * y, pixelWidth, pixelHeight));
+                    int x = i % settings.Columns, y = i / settings.Columns;
+                    drawingContext.DrawRoundedRectangle(
+                        new ImageBrush(image), null,
+                        new Rect((settings.CellPixelWidth + settings.Gap) * x,
+                                 (settings.CellPixelHeight + settings.Gap) * y,
+                                 settings.CellPixelWidth,
+                                 settings.CellPixelHeight),
+                        settings.CornerRadiusX,
+                        settings.CornerRadiusY);
                     i++;
                 }
             }
 
             // Converts the Visual (DrawingVisual) into a BitmapSource
-            var bmp = new RenderTargetBitmap((pixelWidth + gap) * hq - gap, (pixelHeight + gap) * vq - gap, 96, 96, PixelFormats.Pbgra32);
+            var bmp = new RenderTargetBitmap(totalWidth, totalHeight, 96, 96, PixelFormats.Pbgra32);
             bmp.Render(drawingVisual);
             var frame = BitmapFrame.Create(bmp);
             frame.Freeze();
@@ -68,7 +78,7 @@ namespace SEApiComposeImages
                         countDiffering++;
                 }
             var ratio = (double)countDiffering / width / height;
-            return ratio < 0.075;
+            return ratio < 0.025;
         }
 
 

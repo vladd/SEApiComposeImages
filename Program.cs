@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Net;
 using System.Text;
+using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using MoreLinq;
 using Newtonsoft.Json.Linq;
@@ -23,29 +24,26 @@ namespace SEApiComposeImages
         static void Main(string[] args) => new Program().Run();
 
         Random random = new Random();
+        const string FileName = "TopUserIds.txt";
+
         void Run()
         {
-            var topids = GetIds();
+            var topids = GetIds(FileName);
             var topUsers = GetUsers(topids);
-            int cols = 16, rows = 8;
-            var shuffledImages = Shuffle(topUsers.Select(u => u.Image).Take(cols * rows));
-            var result = ImageTools.CombineImages(shuffledImages, cols, rows, 128, 128, 5);
-            ImageTools.SaveImageAsPng(result, $@"combined-{cols}x{rows}.png");
+            int cols = 22, rows = 6;
+            int count = 3;
+            var images = topUsers.Select(u => u.Image).Take(cols * rows).ToList();
+            for (int i = 0; i < count; ++i)
+            {
+                var shuffledImages = Shuffle(images);
+                var result = ImageTools.CombineImages(shuffledImages, GetGridSettings(cols, rows));
+                ImageTools.SaveImageAsPng(result, $@"combined-{cols}x{rows}-{i}.png");
+            }
         }
 
-        IEnumerable<int> GetIds()
+        IEnumerable<int> GetIds(string filename)
         {
-            var lines = File.ReadLines("TopUsersLast90Days.csv");
-            return lines.Skip(1).Select(ExtractId);
-        }
-
-        int ExtractId(string line)
-        {
-            var values = line.Split(',');
-            if (values.Length != 3)
-                throw new ArgumentException("Unknown format");
-            var idString = values[0].Trim('"');
-            return int.Parse(idString);
+            return File.ReadLines(filename).Distinct().Select(int.Parse);
         }
 
         IEnumerable<User> GetUsers(IEnumerable<int> ids)
@@ -76,13 +74,15 @@ namespace SEApiComposeImages
 
         IEnumerable<User> FetchUsers(IEnumerable<int> ids)
         {
-            var queryUri = BuildQuery(ids.ToList());
+            var idsList = ids.ToList();
+            var queryUri = BuildQuery(idsList);
             string json;
             using (var cl = PrepareWebClient())
                 json = cl.DownloadString(queryUri);
             JObject total = JObject.Parse(json);
             JArray items = (JArray)total["items"];
-            return items.Select(JsonToUser);
+            var users = items.Select(JsonToUser).ToDictionary(u => u.Id);
+            return idsList.Select(id => users[id]);
         }
 
         User JsonToUser(JToken juser)
@@ -133,6 +133,21 @@ namespace SEApiComposeImages
                 }
             }
             return result;
+        }
+
+        ImageGridSettings GetGridSettings(int cols, int rows)
+        {
+            return new ImageGridSettings
+            {
+                Columns = cols,
+                Rows = rows,
+                CellPixelWidth = 128,
+                CellPixelHeight = 128,
+                Gap = 5,
+                CornerRadiusX = 10,
+                CornerRadiusY = 10,
+                BackgroundColor = Colors.Black
+            };
         }
     }
 }
