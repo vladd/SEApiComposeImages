@@ -28,8 +28,10 @@ namespace SEApiComposeImages
                 foreach (var image in images)
                 {
                     int x = i % hq, y = i / hq;
-                    drawingContext.DrawImage(
-                        image, new Rect((pixelWidth + gap) * x, (pixelHeight + gap) * y, pixelWidth, pixelHeight));
+                    drawingContext.DrawRoundedRectangle(
+                        new ImageBrush(image), null,
+                        new Rect((pixelWidth + gap) * x, (pixelHeight + gap) * y, pixelWidth, pixelHeight),
+                        10, 10);
                     i++;
                 }
             }
