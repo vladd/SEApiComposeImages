@@ -31,9 +31,14 @@ namespace SEApiComposeImages
             var topids = GetIds(FileName);
             var topUsers = GetUsers(topids);
             int cols = 22, rows = 6;
-            var shuffledImages = Shuffle(topUsers.Select(u => u.Image).Take(cols * rows));
-            var result = ImageTools.CombineImages(shuffledImages, GetGridSettings(cols, rows));
-            ImageTools.SaveImageAsPng(result, $@"combined-{cols}x{rows}.png");
+            int count = 3;
+            var images = topUsers.Select(u => u.Image).Take(cols * rows).ToList();
+            for (int i = 0; i < count; ++i)
+            {
+                var shuffledImages = Shuffle(images);
+                var result = ImageTools.CombineImages(shuffledImages, GetGridSettings(cols, rows));
+                ImageTools.SaveImageAsPng(result, $@"combined-{cols}x{rows}-{i}.png");
+            }
         }
 
         IEnumerable<int> GetIds(string filename)
