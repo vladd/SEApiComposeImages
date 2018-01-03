@@ -68,13 +68,15 @@ namespace SEApiComposeImages
 
         IEnumerable<User> FetchUsers(IEnumerable<int> ids)
         {
-            var queryUri = BuildQuery(ids.ToList());
+            var idsList = ids.ToList();
+            var queryUri = BuildQuery(idsList);
             string json;
             using (var cl = PrepareWebClient())
                 json = cl.DownloadString(queryUri);
             JObject total = JObject.Parse(json);
             JArray items = (JArray)total["items"];
-            return items.Select(JsonToUser);
+            var users = items.Select(JsonToUser).ToDictionary(u => u.Id);
+            return idsList.Select(id => users[id]);
         }
 
         User JsonToUser(JToken juser)
